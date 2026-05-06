@@ -39,10 +39,15 @@ async function startServer() {
     ]
   };
 
+  const TWEETS_URL = process.env.API_TWEETS_URL || "https://twit-production-5ab9.up.railway.app/tweets";
+  const NEWS_URL = process.env.API_NEWS_URL || "https://rrs-production.up.railway.app/antara";
+  const TELEGRAM_URL = process.env.API_TELEGRAM_URL || "https://tele-production-a6a3.up.railway.app/telegram";
+  const PLANES_URL = process.env.API_PLANES_URL || "https://web-production-b0130.up.railway.app/plane";
+
   // API Routes with Proxy Fallback
   app.get("/api/tweets", async (req, res) => {
     try {
-      const response = await axios.get("https://twit-production-5ab9.up.railway.app/tweets", { timeout: 10000 });
+      const response = await axios.get(TWEETS_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
       console.error("Tweets fetch error:", e instanceof Error ? e.message : e);
@@ -52,7 +57,7 @@ async function startServer() {
 
   app.get("/api/news", async (req, res) => {
     try {
-      const response = await axios.get("https://rrs-production.up.railway.app/antara", { timeout: 10000 });
+      const response = await axios.get(NEWS_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
       console.error("News fetch error:", e instanceof Error ? e.message : e);
@@ -62,7 +67,7 @@ async function startServer() {
 
   app.get("/api/telegram", async (req, res) => {
     try {
-      const response = await axios.get("https://tele-production-a6a3.up.railway.app/telegram", { timeout: 10000 });
+      const response = await axios.get(TELEGRAM_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
       console.error("Telegram fetch error:", e instanceof Error ? e.message : e);
@@ -72,7 +77,7 @@ async function startServer() {
 
   app.get("/api/planes", async (req, res) => {
     try {
-      const response = await axios.get("https://web-production-b0130.up.railway.app/plane", { timeout: 10000 });
+      const response = await axios.get(PLANES_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
       console.error("Planes fetch error:", e instanceof Error ? e.message : e);
