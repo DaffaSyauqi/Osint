@@ -1,0 +1,6 @@
+{
+  "name": "OSINT Sentinel Dashboard",
+  "description": "A comprehensive OSINT dashboard featuring real-time military plane tracking, news feeds, telegram monitoring, and social media scraping.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
