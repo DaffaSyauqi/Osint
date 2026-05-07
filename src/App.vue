@@ -196,9 +196,8 @@ const formatTime = (timeStr?: string) => {
             <h3 v-if="(item as any).title" class="text-[#e2e8f0] font-bold text-xs mb-2 leading-snug">{{ (item as any).title }}</h3>
             <p class="text-slate-300 text-[11px] leading-relaxed line-clamp-4 font-light tracking-tight">{{ (item as any).text || (item as any).summary }}</p>
             
-            <div v-if="(item as any).image_url" class="mt-3 h-24 w-full overflow-hidden rounded border border-white/5 relative">
-              <img :src="(item as any).image_url" class="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500" />
-              <div class="absolute inset-0 bg-cyan-500/10 mix-blend-overlay pointer-events-none"></div>
+            <div v-if="(item as any).image_url" class="mt-3 w-full overflow-hidden rounded border border-white/5 relative">
+              <img :src="(item as any).image_url" class="w-full h-auto object-contain" />
             </div>
           </template>
         </div>
