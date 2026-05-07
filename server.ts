@@ -39,14 +39,15 @@ async function startServer() {
     ]
   };
 
-  const TWEETS_URL = process.env.API_TWEETS_URL || "https://twit-production-5ab9.up.railway.app/tweets";
-  const NEWS_URL = process.env.API_NEWS_URL || "https://rrs-production.up.railway.app/antara";
-  const TELEGRAM_URL = process.env.API_TELEGRAM_URL || "https://tele-production-a6a3.up.railway.app/telegram";
-  const PLANES_URL = process.env.API_PLANES_URL || "https://web-production-b0130.up.railway.app/plane";
+  const TWEETS_URL = process.env.API_TWEETS_URL;
+  const NEWS_URL = process.env.API_NEWS_URL;
+  const TELEGRAM_URL = process.env.API_TELEGRAM_URL;
+  const PLANES_URL = process.env.API_PLANES_URL;
 
   // API Routes with Proxy Fallback
   app.get("/api/tweets", async (req, res) => {
     try {
+      if (!TWEETS_URL) throw new Error("API_TWEETS_URL not set in environment");
       const response = await axios.get(TWEETS_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
@@ -57,6 +58,7 @@ async function startServer() {
 
   app.get("/api/news", async (req, res) => {
     try {
+      if (!NEWS_URL) throw new Error("API_NEWS_URL not set in environment");
       const response = await axios.get(NEWS_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
@@ -67,6 +69,7 @@ async function startServer() {
 
   app.get("/api/telegram", async (req, res) => {
     try {
+      if (!TELEGRAM_URL) throw new Error("API_TELEGRAM_URL not set in environment");
       const response = await axios.get(TELEGRAM_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {
@@ -77,6 +80,7 @@ async function startServer() {
 
   app.get("/api/planes", async (req, res) => {
     try {
+      if (!PLANES_URL) throw new Error("API_PLANES_URL not set in environment");
       const response = await axios.get(PLANES_URL, { timeout: 10000 });
       res.json(response.data);
     } catch (e) {

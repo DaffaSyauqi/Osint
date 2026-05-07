@@ -6,8 +6,9 @@ const mockTweets = [
 ];
 
 export default async function handler(req: any, res: any) {
-  const TWEETS_URL = process.env.API_TWEETS_URL || "https://twit-production-5ab9.up.railway.app/tweets";
+  const TWEETS_URL = process.env.API_TWEETS_URL;
   try {
+    if (!TWEETS_URL) throw new Error("API_TWEETS_URL is missing");
     const response = await axios.get(TWEETS_URL, { timeout: 10000 });
     res.status(200).json(response.data);
   } catch (e) {

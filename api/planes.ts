@@ -8,8 +8,9 @@ const mockPlanes = {
 };
 
 export default async function handler(req: any, res: any) {
-  const PLANES_URL = process.env.API_PLANES_URL || "https://web-production-b0130.up.railway.app/plane";
+  const PLANES_URL = process.env.API_PLANES_URL;
   try {
+    if (!PLANES_URL) throw new Error("API_PLANES_URL is missing");
     const response = await axios.get(PLANES_URL, { timeout: 10000 });
     res.status(200).json(response.data);
   } catch (e) {

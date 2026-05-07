@@ -6,8 +6,9 @@ const mockTelegram = [
 ];
 
 export default async function handler(req: any, res: any) {
-  const TELEGRAM_URL = process.env.API_TELEGRAM_URL || "https://tele-production-a6a3.up.railway.app/telegram";
+  const TELEGRAM_URL = process.env.API_TELEGRAM_URL;
   try {
+    if (!TELEGRAM_URL) throw new Error("API_TELEGRAM_URL is missing");
     const response = await axios.get(TELEGRAM_URL, { timeout: 10000 });
     res.status(200).json(response.data);
   } catch (e) {

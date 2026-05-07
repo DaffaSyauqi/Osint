@@ -6,8 +6,9 @@ const mockNews = [
 ];
 
 export default async function handler(req: any, res: any) {
-  const NEWS_URL = process.env.API_NEWS_URL || "https://rrs-production.up.railway.app/antara";
+  const NEWS_URL = process.env.API_NEWS_URL;
   try {
+    if (!NEWS_URL) throw new Error("API_NEWS_URL is missing");
     const response = await axios.get(NEWS_URL, { timeout: 10000 });
     res.status(200).json(response.data);
   } catch (e) {
