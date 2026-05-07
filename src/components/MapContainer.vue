@@ -57,6 +57,7 @@ const initMap = () => {
 
   // Popup overlay
   const overlay = new Overlay({
+    id: 'popup-overlay',
     element: popupContainer.value!,
     autoPan: {
       animation: {
@@ -121,7 +122,27 @@ const zoomOut = () => {
   }
 };
 
-defineExpose({ zoomIn, zoomOut });
+const selectPlane = (plane: any) => {
+  if (!map || !plane) return;
+  selectedPlane.value = plane;
+  
+  if (plane.lon && plane.lat) {
+    const view = map.getView();
+    view.animate({
+      center: fromLonLat([plane.lon, plane.lat]),
+      zoom: 6,
+      duration: 500
+    });
+    
+    // Position overlay
+    const overlay = map.getOverlayById('popup-overlay');
+    if (overlay) {
+      overlay.setPosition(fromLonLat([plane.lon, plane.lat]));
+    }
+  }
+};
+
+defineExpose({ zoomIn, zoomOut, selectPlane, selectedPlane });
 
 const updateMarkers = () => {
   if (!vectorSource) return;
@@ -215,47 +236,89 @@ onMounted(() => {
     <div ref="mapContainer" class="absolute inset-0 w-full h-full"></div>
     
     <!-- Popup Overlay -->
-    <div ref="popupContainer" class="absolute glass p-4 rounded-xl shadow-2xl min-w-[220px] pointer-events-auto border border-white/10" v-show="selectedPlane">
-      <div v-if="selectedPlane" class="space-y-3">
-        <div class="flex justify-between items-start border-b border-white/10 pb-2 mb-2">
-          <h3 class="font-bold text-cyan-400 font-mono text-[11px] leading-tight">{{ selectedPlane.callsign || 'UNKNOWN' }}</h3>
-          <span class="text-[9px] bg-white/5 px-1.5 py-0.5 rounded text-slate-500 font-mono border border-white/5">{{ selectedPlane.hex }}</span>
+    <div ref="popupContainer" class="absolute bg-[#1e293b]/95 backdrop-blur-md p-0 rounded-xl shadow-2xl min-w-[320px] pointer-events-auto border border-slate-700/50 overflow-hidden" v-show="selectedPlane">
+      <div v-if="selectedPlane">
+        
+        <!-- Top Image Section -->
+        <div v-if="selectedPlane.imagelink1 || selectedPlane.imagelink2" class="relative w-full h-[180px] bg-slate-800">
+           <img :src="selectedPlane.imagelink1 || selectedPlane.imagelink2" class="w-full h-full object-cover" />
+           <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/20 to-transparent"></div>
+           
+           <div class="absolute top-3 left-3">
+             <span v-if="selectedPlane.cmpg === 'Mil' || selectedPlane.is_military" class="text-[9px] font-bold bg-red-600 text-white px-2 py-0.5 rounded shadow tracking-widest leading-none block">MILITARY HOST</span>
+             <span v-else-if="selectedPlane.cmpg === 'Gov'" class="text-[9px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded shadow tracking-widest leading-none block">GOVERNMENT HOST</span>
+             <span v-else class="text-[9px] font-bold bg-cyan-600 text-white px-2 py-0.5 rounded shadow tracking-widest leading-none block">{{ selectedPlane.category || 'CIVIL' }}</span>
+           </div>
+      
+           <div class="absolute bottom-3 left-4 right-4 flex justify-between items-end">
+             <div>
+               <h3 :class="['text-2xl font-bold italic tracking-tight font-mono leading-none drop-shadow-md', selectedPlane.cmpg === 'Gov' ? 'text-blue-400' : (selectedPlane.cmpg === 'Mil' || selectedPlane.is_military) ? 'text-red-400' : 'text-cyan-400']">{{ selectedPlane.callsign || 'UNK_ID' }}</h3>
+               <p class="text-[10px] text-slate-300 uppercase tracking-widest mt-1.5 font-mono drop-shadow-md">{{ (selectedPlane.type_full || selectedPlane.type) || 'UNKNOWN TYPE' }}</p>
+             </div>
+             <span class="text-[10px] uppercase font-bold px-2 py-1 bg-[#1e293b]/80 backdrop-blur-sm text-slate-300 rounded font-mono border border-white/10">{{ selectedPlane.hex }}</span>
+           </div>
         </div>
-        <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-mono">
-          <div class="flex flex-col">
-            <span class="text-slate-500 uppercase font-bold text-[8px]">Type</span>
-            <span class="text-slate-200">{{ selectedPlane.type || 'N/A' }}</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-slate-500 uppercase font-bold text-[8px]">Altitude</span>
-            <span class="text-slate-200">{{ selectedPlane.altitude }} ft</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-slate-500 uppercase font-bold text-[8px]">Speed</span>
-            <span class="text-slate-200">{{ selectedPlane.speed }} kts</span>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-slate-500 uppercase font-bold text-[8px]">Sector</span>
-            <span class="text-slate-200">{{ selectedPlane.tile }}</span>
-          </div>
+      
+        <!-- If NO Image -->
+        <div v-else class="p-4 border-b border-white/10 flex justify-between items-start bg-slate-800/50">
+            <div>
+               <h3 :class="['text-2xl font-bold italic tracking-tight font-mono leading-none drop-shadow-md', selectedPlane.cmpg === 'Gov' ? 'text-blue-500' : (selectedPlane.cmpg === 'Mil' || selectedPlane.is_military) ? 'text-red-500' : 'text-cyan-500']">{{ selectedPlane.callsign || 'UNK_ID' }}</h3>
+               <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1.5 font-mono">{{ (selectedPlane.type_full || selectedPlane.type) || 'UNKNOWN TYPE' }}</p>
+            </div>
+            <span class="text-[10px] uppercase font-bold px-2 py-1 bg-[#1e293b]/80 text-slate-300 rounded font-mono border border-white/10">{{ selectedPlane.hex }}</span>
         </div>
-        <div v-if="selectedPlane.cmpg === 'Mil'" class="mt-2 pt-2 border-t border-white/10 flex items-center gap-2">
-          <div class="w-1.5 h-1.5 bg-red-500 rounded-full status-pulse"></div>
-          <span class="text-[9px] text-red-400 font-bold uppercase tracking-widest">
-            Identity: Military Host
-          </span>
-        </div>
-        <div v-else-if="selectedPlane.cmpg === 'Gov'" class="mt-2 pt-2 border-t border-white/10 flex items-center gap-2">
-          <div class="w-1.5 h-1.5 bg-blue-500 rounded-full status-pulse"></div>
-          <span class="text-[9px] text-blue-400 font-bold uppercase tracking-widest">
-            Identity: Government Host
-          </span>
-        </div>
-        <div v-else-if="selectedPlane.is_military" class="mt-2 pt-2 border-t border-white/10 flex items-center gap-2">
-          <div class="w-1.5 h-1.5 bg-red-500 rounded-full status-pulse"></div>
-          <span class="text-[9px] text-red-400 font-bold uppercase tracking-widest">
-            Identity: Military Host
-          </span>
+      
+        <div class="p-4 space-y-4 bg-[#0f172a]">
+           <!-- Data grid -->
+           <div class="grid grid-cols-2 gap-y-4 gap-x-2 text-[10px] font-mono">
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Altitude</span>
+                 <span class="text-slate-200 uppercase font-bold text-xs">{{ selectedPlane.altitude === 'ground' || selectedPlane.altitude === 'Ground' ? 'ground ft' : ((selectedPlane.altitude) + ' ft') }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Speed</span>
+                 <span class="text-slate-200 uppercase font-bold text-xs">{{ selectedPlane.speed }} kts</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Track</span>
+                 <span class="text-slate-200 uppercase font-bold text-xs">{{ selectedPlane.track !== undefined ? selectedPlane.track + '°' : '-' }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Squawk</span>
+                 <span class="text-slate-200 uppercase font-bold text-xs">{{ selectedPlane.squawk || '-' }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Operator</span>
+                 <span class="text-slate-200 font-bold truncate pr-2 capitalize">{{ selectedPlane.operator || '-' }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Registration</span>
+                 <span class="text-slate-200 font-bold uppercase">{{ selectedPlane.registration || '-' }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Lat / Lon</span>
+                 <span class="text-slate-200 font-bold">{{ selectedPlane.lat?.toFixed(4) }} / {{ selectedPlane.lon?.toFixed(4) }}</span>
+              </div>
+              <div class="flex flex-col gap-1">
+                 <span class="text-slate-500 uppercase font-bold text-[8px] tracking-wider">Mission Type</span>
+                 <span class="text-emerald-500 uppercase font-bold text-xs tracking-tight">{{ selectedPlane.mission_type || '-' }}</span>
+              </div>
+           </div>
+           
+           <!-- Tags -->
+           <div v-if="selectedPlane.tag1 || selectedPlane.tag2 || selectedPlane.tag3" class="flex flex-wrap gap-1.5 pt-2">
+              <span v-if="selectedPlane.tag1" class="text-[8px] bg-white/5 text-slate-400 px-2 py-1 rounded border border-white/10 uppercase font-bold tracking-wider">{{ selectedPlane.tag1 }}</span>
+              <span v-if="selectedPlane.tag2" class="text-[8px] bg-white/5 text-slate-400 px-2 py-1 rounded border border-white/10 uppercase font-bold tracking-wider">{{ selectedPlane.tag2 }}</span>
+              <span v-if="selectedPlane.tag3" class="text-[8px] bg-white/5 text-slate-400 px-2 py-1 rounded border border-white/10 uppercase font-bold tracking-wider">{{ selectedPlane.tag3 }}</span>
+           </div>
+           
+           <div class="mt-2 pt-3 border-t border-white/10 flex justify-between items-center">
+              <div class="flex items-center gap-1.5">
+                 <div :class="['w-1.5 h-1.5 rounded-full', selectedPlane.cmpg === 'Gov' ? 'bg-blue-500' : (selectedPlane.cmpg === 'Mil' || selectedPlane.is_military) ? 'bg-red-500' : 'bg-cyan-500']"></div>
+                 <span class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{{ selectedPlane.tile || 'Global' }}</span>
+              </div>
+              <span class="text-[8px] text-slate-600 font-mono tracking-widest">TARGET_INT_VECTOR_V4</span>
+           </div>
         </div>
       </div>
     </div>

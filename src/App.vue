@@ -43,6 +43,18 @@ interface PlaneData {
   type: string;
   tile: string;
   is_military: boolean;
+  mission_type?: string;
+  operator?: string;
+  registration?: string;
+  squawk?: string;
+  tag1?: string;
+  tag2?: string;
+  tag3?: string;
+  type_full?: string;
+  imagelink1?: string;
+  imagelink2?: string;
+  imagelink3?: string;
+  imagelink4?: string;
 }
 
 // state
@@ -167,22 +179,67 @@ const formatTime = (timeStr?: string) => {
         >
           <!-- Plane Specific Card -->
           <template v-if="currentTab === 'Planes'">
-            <div class="space-y-2">
-              <div class="flex justify-between items-start">
-                <span class="text-xs font-mono text-cyan-400 font-bold tracking-tighter">{{ (item as any).callsign || 'UNK_ID' }}</span>
-                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 bg-white/5 text-slate-500 rounded border border-white/5">{{ (item as any).hex }}</span>
+            <div class="space-y-3 cursor-pointer group" @click="mapRef?.selectPlane((item as any))" 
+                 :class="{'border-white/20': mapRef?.selectedPlane?.hex === (item as any).hex}">
+              
+              <!-- Have Image -->
+              <div v-if="(item as any).imagelink1 || (item as any).imagelink2" class="relative w-full h-[140px] rounded bg-slate-800 overflow-hidden border border-white/5">
+                <div class="absolute top-2 left-2 z-10 w-fit">
+                    <span v-if="(item as any).cmpg === 'Mil' || (item as any).is_military" class="text-[8px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded shadow block leading-none">MIL</span>
+                    <span v-else-if="(item as any).cmpg === 'Gov'" class="text-[8px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded shadow block leading-none">GOV</span>
+                </div>
+                <div class="absolute bottom-2 right-2 z-10 w-fit" v-if="(item as any).mission_type">
+                    <span class="text-[8px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded shadow uppercase block leading-none tracking-widest">{{ (item as any).mission_type }}</span>
+                </div>
+                <img :src="(item as any).imagelink1 || (item as any).imagelink2" class="w-full h-full object-cover" />
+                <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none"></div>
               </div>
-              <div class="grid grid-cols-2 gap-2 text-[10px] font-mono text-slate-400">
-                <div class="flex items-center gap-1">
-                  <span class="text-slate-600">ALT:</span> {{ (item as any).altitude }}ft
+              
+              <!-- Callsign & Type -->
+              <div class="flex justify-between items-start" v-if="!((item as any).imagelink1 || (item as any).imagelink2)">
+                <div>
+                  <h3 :class="['text-[14px] font-bold italic tracking-tight font-mono', (item as any).cmpg === 'Gov' ? 'text-blue-500' : ((item as any).cmpg === 'Mil' || (item as any).is_military) ? 'text-red-500' : 'text-cyan-500']">{{ (item as any).callsign || 'UNK_ID' }}</h3>
+                  <p class="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5 font-mono">{{ (item as any).type_full || (item as any).type || 'UNKNOWN TYPE' }}</p>
                 </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-slate-600">SPD:</span> {{ (item as any).speed }}kts
+                <span class="text-[9px] uppercase font-bold px-1.5 py-0.5 bg-white/5 text-slate-400 rounded border border-white/5 font-mono">{{ (item as any).hex }}</span>
+              </div>
+
+              <!-- Data Grid -->
+              <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-[10px] font-mono mt-2">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-slate-500 font-semibold tracking-wider text-[8px] uppercase">Altitude</span>
+                  <span class="text-slate-300 font-bold">{{ (item as any).altitude === 'ground' || (item as any).altitude === 'Ground' ? 'ground ft' : ((item as any).altitude + 'ft') }}</span>
                 </div>
-                <div class="col-span-2 flex items-center gap-1 mt-1">
-                  <MapPin class="w-3 h-3 text-slate-600" />
-                  <span class="text-slate-500 truncate">{{ (item as any).tile }}</span>
+                <div class="flex flex-col gap-0.5" v-if="(item as any).speed !== undefined">
+                  <span class="text-slate-500 font-semibold tracking-wider text-[8px] uppercase">Speed</span>
+                  <span class="text-slate-300 font-bold">{{ (item as any).speed }}kts</span>
                 </div>
+                <!-- Operator and Registration. If image is present, maybe these are shown? the user's screenshot shows them. -->
+                <div class="flex flex-col gap-0.5" v-if="(item as any).operator">
+                  <span class="text-slate-500 font-semibold tracking-wider text-[8px] uppercase">Operator</span>
+                  <span class="text-slate-300 font-bold truncate pr-2 uppercase">{{ (item as any).operator }}</span>
+                </div>
+                <div class="flex flex-col gap-0.5" v-if="(item as any).registration">
+                  <span class="text-slate-500 font-semibold tracking-wider text-[8px] uppercase">Registration</span>
+                  <span class="text-slate-300 font-bold truncate uppercase">{{ (item as any).registration }}</span>
+                </div>
+              </div>
+              
+              <!-- Tags -->
+              <div v-if="(item as any).tag1 || (item as any).tag2 || (item as any).tag3" class="flex flex-wrap gap-1.5 mt-2">
+                  <span v-if="(item as any).tag1" class="text-[8px] bg-white/5 text-slate-400 px-2 py-0.5 rounded border border-white/10 uppercase">{{ (item as any).tag1 }}</span>
+                  <span v-if="(item as any).tag2" class="text-[8px] bg-white/5 text-slate-400 px-2 py-0.5 rounded border border-white/10 uppercase">{{ (item as any).tag2 }}</span>
+                  <span v-if="(item as any).tag3" class="text-[8px] bg-white/5 text-slate-400 px-2 py-0.5 rounded border border-white/10 uppercase">{{ (item as any).tag3 }}</span>
+              </div>
+              
+              <!-- Footer line -->
+              <div class="mt-3 pt-3 border-t border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <div :class="['w-1 h-1 rounded-full', (item as any).cmpg === 'Gov' ? 'bg-blue-500' : ((item as any).cmpg === 'Mil' || (item as any).is_military) ? 'bg-red-500' : 'bg-cyan-500']"></div>
+                  <span class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">{{ (item as any).tile || 'Global' }}</span>
+                </div>
+                <span class="text-[8px] text-slate-600 font-mono tracking-widest" v-if="!((item as any).imagelink1 || (item as any).imagelink2)">{{ (item as any).squawk || (item as any).hex }}</span>
+                <span class="text-[8px] text-slate-600 font-mono tracking-widest" v-else>{{ (item as any).squawk || '3742' }}</span>
               </div>
             </div>
           </template>
