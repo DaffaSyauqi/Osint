@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { 
   Twitter, 
   Newspaper, 
@@ -75,6 +75,60 @@ const feeds = ref<{
   News: [],
   Telegram: [],
   Planes: []
+});
+
+const COUNTRY_COORDS: Record<string, { lat: number; lon: number }> = {
+  "Iran": { lat: 32.4279, lon: 53.6880 },
+  "Israel": { lat: 31.0461, lon: 34.8516 },
+  "Gaza": { lat: 31.4427, lon: 34.3642 },
+  "Ukraine": { lat: 48.3794, lon: 31.1656 },
+  "Russia": { lat: 61.5240, lon: 105.3188 },
+  "China": { lat: 35.8617, lon: 104.1954 },
+  "Taiwan": { lat: 23.6978, lon: 120.9605 },
+  "Lebanon": { lat: 33.8547, lon: 35.8623 },
+  "Syria": { lat: 34.8021, lon: 38.9968 },
+  "Yemen": { lat: 15.5527, lon: 48.5164 },
+  "Iraq": { lat: 33.2232, lon: 43.6793 }
+};
+
+export interface AlertData {
+  country: string;
+  lat: number;
+  lon: number;
+  items: FeedItem[];
+  is_alert: boolean;
+}
+
+const mapAlerts = computed(() => {
+  const alertsMap = new Map<string, AlertData>();
+  
+  const processFeed = (feed: FeedItem[]) => {
+    feed.forEach(item => {
+      const textsToSearch = [item.text, item.title, item.summary].filter(Boolean).map(t => t?.toLowerCase());
+      
+      for (const [country, coords] of Object.entries(COUNTRY_COORDS)) {
+        const keyword = country.toLowerCase();
+        if (textsToSearch.some(t => t!.includes(keyword))) {
+          if (!alertsMap.has(country)) {
+            alertsMap.set(country, {
+              country,
+              lat: coords.lat,
+              lon: coords.lon,
+              items: [],
+              is_alert: true
+            });
+          }
+          alertsMap.get(country)!.items.push(item);
+        }
+      }
+    });
+  };
+
+  processFeed(feeds.value.Tweets);
+  processFeed(feeds.value.News);
+  processFeed(feeds.value.Telegram);
+
+  return Array.from(alertsMap.values());
 });
 
 const tabs = [
@@ -281,7 +335,7 @@ const formatTime = (timeStr?: string) => {
     <!-- Main Map Area -->
     <main class="flex-1 relative">
       <!-- Real Map Component -->
-      <MapContainer ref="mapRef" :markers="feeds.Planes" />
+      <MapContainer ref="mapRef" :markers="feeds.Planes" :alerts="mapAlerts" />
 
       <!-- Top Control Bar (Floating) -->
       <div class="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-30">

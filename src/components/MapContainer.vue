@@ -17,6 +17,7 @@ import { defaults as defaultControls } from 'ol/control';
 
 interface Props {
   markers: any[];
+  alerts?: any[];
 }
 
 const props = defineProps<Props>();
@@ -220,9 +221,42 @@ const updateMarkers = () => {
 
     vectorSource.addFeature(feature);
   });
+
+  if (props.alerts) {
+    props.alerts.forEach((alert) => {
+      const feature = new Feature({
+        geometry: new Point(fromLonLat([alert.lon, alert.lat])),
+        data: alert
+      });
+
+      const alertIcon = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+          <line x1="12" x2="12" y1="9" y2="13"/>
+          <line x1="12" x2="12.01" y1="17" y2="17"/>
+        </svg>
+      `.trim();
+
+      feature.setStyle(new Style({
+        image: new Icon({
+          src: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(alertIcon),
+          scale: 1,
+        }),
+        text: new Text({
+          text: alert.country.toUpperCase(),
+          offsetY: 22,
+          fill: new Fill({ color: '#ef4444' }),
+          font: 'bold 14px JetBrains Mono, monospace',
+          stroke: new Stroke({ color: '#1e293b', width: 4 })
+        })
+      }));
+
+      vectorSource.addFeature(feature);
+    });
+  }
 };
 
-watch(() => props.markers, () => {
+watch(() => [props.markers, props.alerts], () => {
   updateMarkers();
 }, { deep: true });
 
@@ -239,8 +273,30 @@ onMounted(() => {
     <div ref="popupContainer" class="absolute bg-[#1e293b]/95 backdrop-blur-md p-0 rounded-xl shadow-2xl min-w-[320px] pointer-events-auto border border-slate-700/50 overflow-hidden" v-show="selectedPlane">
       <div v-if="selectedPlane">
         
-        <!-- Top Image Section -->
-        <div v-if="selectedPlane.imagelink1 || selectedPlane.imagelink2" class="relative w-full h-[180px] bg-slate-800">
+        <!-- Alert Template -->
+        <div v-if="selectedPlane.is_alert">
+          <div class="p-4 bg-red-500/10 border-b border-red-500/20 flex flex-col items-center justify-center text-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+              <line x1="12" x2="12" y1="9" y2="13"/>
+              <line x1="12" x2="12.01" y1="17" y2="17"/>
+            </svg>
+            <h3 class="text-xl font-bold font-mono text-red-500 tracking-widest uppercase">{{ selectedPlane.country }}</h3>
+          </div>
+          <div class="p-4 max-h-[300px] overflow-y-auto custom-scrollbar space-y-4">
+            <div v-for="(item, idx) in selectedPlane.items" :key="idx" class="border-b border-white/5 pb-3">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-[9px] uppercase bg-white/10 px-1.5 py-0.5 rounded text-slate-300 font-mono">{{ item.source || item.channel || 'Feed' }}</span>
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed font-sans">{{ item.text || item.title || item.summary }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plane Template -->
+        <div v-else>
+          <!-- Top Image Section -->
+          <div v-if="selectedPlane.imagelink1 || selectedPlane.imagelink2" class="relative w-full h-[180px] bg-slate-800">
            <img :src="selectedPlane.imagelink1 || selectedPlane.imagelink2" class="w-full h-full object-cover" />
            <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/20 to-transparent"></div>
            
@@ -320,6 +376,8 @@ onMounted(() => {
               <span class="text-[8px] text-slate-600 font-mono tracking-widest">TARGET_INT_VECTOR_V4</span>
            </div>
         </div>
+        </div>
+
       </div>
     </div>
   </div>
