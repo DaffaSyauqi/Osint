@@ -13,6 +13,7 @@ import LineString from 'ol/geom/LineString';
 import { fromLonLat } from 'ol/proj';
 import { Style, Icon, Text, Fill, Stroke, Circle } from 'ol/style';
 import Overlay from 'ol/Overlay';
+import { defaults as defaultControls } from 'ol/control';
 
 interface Props {
   markers: any[];
@@ -34,6 +35,7 @@ const initMap = () => {
 
   map = new Map({
     target: mapContainer.value,
+    controls: defaultControls({ zoom: false }),
     layers: [
       new TileLayer({
         source: new XYZ({
@@ -104,6 +106,22 @@ const getDestinationLonLat = (lon: number, lat: number, track: number, distanceK
 
   return [(lon2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
 };
+
+const zoomIn = () => {
+  if (map) {
+    const view = map.getView();
+    view.animate({ zoom: (view.getZoom() || 4) + 1, duration: 250 });
+  }
+};
+
+const zoomOut = () => {
+  if (map) {
+    const view = map.getView();
+    view.animate({ zoom: (view.getZoom() || 4) - 1, duration: 250 });
+  }
+};
+
+defineExpose({ zoomIn, zoomOut });
 
 const updateMarkers = () => {
   if (!vectorSource) return;
@@ -247,25 +265,5 @@ onMounted(() => {
 <style scoped>
 :deep(.ol-attribution) {
   display: none;
-}
-:deep(.ol-zoom) {
-  top: 6.5rem; /* Pushed down below the floating status bar */
-  left: 1.5rem;
-}
-:deep(.ol-zoom button) {
-  background-color: rgba(15, 23, 42, 0.8) !important;
-  backdrop-filter: blur(8px);
-  color: #94a3b8 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  width: 2.5rem;
-  height: 2.5rem;
-  font-size: 1.25rem;
-}
-:deep(.ol-zoom button:hover) {
-  background-color: rgba(6, 182, 212, 0.2) !important;
-  color: #22d3ee !important;
-  border-color: rgba(34, 211, 238, 0.5) !important;
 }
 </style>

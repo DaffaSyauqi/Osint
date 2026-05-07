@@ -50,6 +50,7 @@ const currentTab = ref('Tweets');
 const refreshTime = ref(60);
 const isRefreshing = ref(false);
 const autoRefreshInterval = ref<any>(null);
+const mapRef = ref<any>(null);
 
 const feeds = ref<{
   Tweets: FeedItem[];
@@ -218,7 +219,7 @@ const formatTime = (timeStr?: string) => {
     <!-- Main Map Area -->
     <main class="flex-1 relative">
       <!-- Real Map Component -->
-      <MapContainer :markers="feeds.Planes" />
+      <MapContainer ref="mapRef" :markers="feeds.Planes" />
 
       <!-- Top Control Bar (Floating) -->
       <div class="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-30">
@@ -233,8 +234,8 @@ const formatTime = (timeStr?: string) => {
         </div>
 
         <div class="flex flex-col gap-2 pointer-events-auto">
-          <button class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/10 text-slate-400 hover:text-white transition-all text-xl">+</button>
-          <button class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/10 text-slate-400 hover:text-white transition-all text-xl">−</button>
+          <button @click="mapRef?.zoomIn()" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/10 text-slate-400 hover:text-white transition-all text-xl">+</button>
+          <button @click="mapRef?.zoomOut()" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/10 text-slate-400 hover:text-white transition-all text-xl">−</button>
           <button @click="fetchData" class="w-10 h-10 glass rounded-lg flex items-center justify-center hover:bg-white/10 text-cyan-400 transition-all" :class="{ 'animate-spin': isRefreshing }">
             <RefreshCw class="w-5 h-5" />
           </button>
