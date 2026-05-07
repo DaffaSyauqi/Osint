@@ -51,6 +51,7 @@ const refreshTime = ref(60);
 const isRefreshing = ref(false);
 const autoRefreshInterval = ref<any>(null);
 const mapRef = ref<any>(null);
+const isSidebarOpen = ref(false);
 
 const feeds = ref<{
   Tweets: FeedItem[];
@@ -116,11 +117,16 @@ const formatTime = (timeStr?: string) => {
 <template>
   <div class="h-screen w-full map-bg text-[#e2e8f0] font-sans flex overflow-hidden relative">
     <!-- Sidebar -->
-    <aside class="w-[360px] h-full glass border-r border-white/10 flex flex-col z-20">
-      <div class="p-6 border-b border-white/10">
+    <aside :class="['w-full md:w-[360px] h-full glass border-r border-white/10 flex flex-col z-40 transition-transform duration-300 absolute md:relative', isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
+      <div class="p-6 border-b border-white/10 shrink-0">
         <div class="flex justify-between items-center mb-1">
           <h1 class="text-xl font-bold tracking-tight text-white uppercase italic">Sentinel<span class="text-cyan-500">OSINT</span></h1>
-          <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30 font-bold uppercase tracking-widest">Live</span>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30 font-bold uppercase tracking-widest">Live</span>
+            <button @click="isSidebarOpen = false" class="md:hidden glass w-7 h-7 rounded flex items-center justify-center text-slate-400 hover:text-white border border-white/10 pb-0.5">
+              <X class="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div class="flex items-center justify-between">
           <p class="text-xs text-slate-400">Multi-source Intelligence Dashboard</p>
@@ -222,14 +228,20 @@ const formatTime = (timeStr?: string) => {
 
       <!-- Top Control Bar (Floating) -->
       <div class="absolute top-6 left-6 right-6 flex justify-between items-start pointer-events-none z-30">
-        <div class="glass px-4 py-2 rounded-full flex items-center gap-4 border border-white/10 pointer-events-auto">
-          <div class="text-[11px]"><span class="text-slate-500 uppercase font-bold mr-1">TGT:</span> <span class="text-cyan-400 font-mono">{{ feeds.Planes.length }}</span></div>
-          <div class="w-px h-3 bg-white/20"></div>
-          <div class="text-[11px] text-slate-500 font-bold tracking-tight uppercase" v-if="feeds.Planes.length > 0">
-            P1: {{ feeds.Planes[0].lat.toFixed(2) }}, {{ feeds.Planes[0].lon.toFixed(2) }}
+        <div class="flex items-start gap-3 pointer-events-auto">
+          <button @click="isSidebarOpen = true" class="w-10 h-10 md:hidden glass rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/10 z-50">
+            <Menu class="w-5 h-5" />
+          </button>
+
+          <div class="glass px-4 py-2 rounded-full flex items-center gap-4 border border-white/10 max-sm:hidden">
+            <div class="text-[11px]"><span class="text-slate-500 uppercase font-bold mr-1">TGT:</span> <span class="text-cyan-400 font-mono">{{ feeds.Planes.length }}</span></div>
+            <div class="w-px h-3 bg-white/20"></div>
+            <div class="text-[11px] text-slate-500 font-bold tracking-tight uppercase" v-if="feeds.Planes.length > 0">
+              P1: {{ feeds.Planes[0].lat.toFixed(2) }}, {{ feeds.Planes[0].lon.toFixed(2) }}
+            </div>
+            <div class="w-px h-3 bg-white/20"></div>
+            <div class="text-[11px] text-slate-300 font-bold tracking-tight uppercase">Operational Sector: GLOBAL</div>
           </div>
-          <div class="w-px h-3 bg-white/20"></div>
-          <div class="text-[11px] text-slate-300 font-bold tracking-tight uppercase">Operational Sector: GLOBAL</div>
         </div>
 
         <div class="flex flex-col gap-2 pointer-events-auto">
