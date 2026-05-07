@@ -1,20 +1,46 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Sentinel OSINT
 
-# Run and deploy your AI Studio app
+Sentinel OSINT is a Multi-source Intelligence Dashboard designed to track and visualize data from various OSINT (Open Source Intelligence) feeds in real-time.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/d266338c-e917-4530-9d4f-279544436ebd
+- **Live Map Visualization:** Tracks global points of interest, including aircraft and other geopolitical events, using OpenLayers and CARTO dark maps.
+- **Multi-Feed Integration:**
+  - **Social Media:** Latest OSINT-related tweets and updates.
+  - **News:** Breaking news and regional developments.
+  - **Telegram:** Secure channel monitoring.
+  - **Aviation:** Flight tracking for military and government aircraft.
+- **Responsive UI:** Built with Vue 3 and Tailwind CSS for a seamless dark-mode tactical interface.
 
-## Run Locally
+## Environment Variables
 
-**Prerequisites:**  Node.js
+For local development or deployment, create a `.env` file based on `.env.example` and provide the following variables:
 
+```env
+API_TWEETS_URL=
+API_NEWS_URL=
+API_TELEGRAM_URL=
+API_PLANES_URL=
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Tech Stack
+
+- **Frontend:** Vue 3, Tailwind CSS, OpenLayers, Lucide Icons
+- **Backend (API):** Node.js API Routes (Vercel compatible)
+- **Build Tool:** Vite
+
+## Getting Started
+
+1. Clone the repository and install dependencies:
+   ```bash
+   npm install
+   ```
+2. Configure your environment variables in `.env`.
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+4. Build for production:
+   ```bash
+   npm run build
+   ```
