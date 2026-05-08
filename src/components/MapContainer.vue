@@ -60,11 +60,6 @@ const initMap = () => {
   const overlay = new Overlay({
     id: 'popup-overlay',
     element: popupContainer.value!,
-    autoPan: {
-      animation: {
-        duration: 250,
-      },
-    },
   });
   map.addOverlay(overlay);
 
@@ -128,13 +123,6 @@ const selectPlane = (plane: any) => {
   selectedPlane.value = plane;
   
   if (plane.lon && plane.lat) {
-    const view = map.getView();
-    view.animate({
-      center: fromLonLat([plane.lon, plane.lat]),
-      zoom: 6,
-      duration: 500
-    });
-    
     // Position overlay
     const overlay = map.getOverlayById('popup-overlay');
     if (overlay) {
